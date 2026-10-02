@@ -1,0 +1,43 @@
+{
+  "name": "forma-risk-radar-demo",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rachermatt/forma-risk-radar-demo.git"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "description": "Standalone Forma Risk Radar demo with synthetic construction portfolio data. No Autodesk sign-in, credentials, or database required.",
+  "scripts": {
+    "dev": "next dev -p 8080",
+    "build": "next build",
+    "start": "next start -p 8080",
+    "typecheck": "tsc --noEmit",
+    "test": "node --conditions=react-server --import tsx --test 'tests/**/*.test.ts'",
+    "db:migrate": "node --import tsx scripts/migrate-database.ts",
+    "sessions:sweep": "node --import tsx scripts/sweep-expired-sessions.ts",
+    "seed:demo": "node --import tsx scripts/seed-demo.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.11",
+    "fflate": "^0.8.2",
+    "next": "^16.3.4",
+    "pg": "^8.23.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.14",
+    "@types/node": "24.7.0",
+    "@types/pg": "^8.23.1",
+    "@types/react": "19.1.11",
+    "@types/react-dom": "19.1.7",
+    "tailwindcss": "4.1.14",
+    "tsx": "^4.23.13",
+    "typescript": "5.9.2"
+  }
+}
