@@ -13,7 +13,7 @@
   "description": "Standalone Forma Risk Radar demo with synthetic construction portfolio data. No Autodesk sign-in, credentials, or database required.",
   "scripts": {
     "dev": "next dev -p 8080",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start -p 8080",
     "typecheck": "tsc --noEmit",
     "test": "node --conditions=react-server --import tsx --test 'tests/**/*.test.ts'",

@@ -56,6 +56,8 @@ npm start
 Both development and production servers default to port 8080. If that port is occupied,
 use `npm run dev -- --port 8082` and open `http://localhost:8082` instead.
 
+The production build uses Next.js's Webpack builder.
+
 ### Validation
 
 ```bash
