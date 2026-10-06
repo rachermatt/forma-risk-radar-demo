@@ -47,7 +47,7 @@ export function SafetyLeadingIndicators({ data, projects, records, onRecord }: S
   });
   const maximum = Math.max(1, ...balance.periods.flatMap((period) => [period.positive, period.negative]));
   return <>
-    <header className="dashboard-header safety-leading-header">
+    <header className="page-head page-head--view">
       <div><p className="eyebrow">BALANCED SAFETY EVIDENCE</p><h1>Safety observations &amp; checklist leading indicators</h1><p>Positive and negative classifications are shown together. Checklist activity is a leading signal for investigation, never an employee, trade, or company performance score.</p></div>
     </header>
     <section className="safety-balance-summary" aria-label="Safety observation balance">

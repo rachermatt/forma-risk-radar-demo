@@ -90,7 +90,7 @@ function recordCiqConditionLabel(record: RiskRecord | undefined): string {
 }
 
 function unavailableProjectRiskRow(project: ProjectRiskSummary, columns: number, onProject: (id: string) => void): ReactNode {
-  return <tr onClick={() => onProject(project.project.id)} className="clickable-row"><td><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></td><td><span className="risk-rank-cell"><b className="score">—</b><small>Not calculated · {Math.round(project.calculation.risk.coverage * 100)}% input coverage</small></span></td><td colSpan={columns - 3}><span className="matrix-na">Risk composite unavailable below the 60% evidence floor</span></td><td><button className="row-arrow" onClick={(event) => { event.stopPropagation(); onProject(project.project.id); }} aria-label={`Open ${project.project.name}`}>→</button></td></tr>;
+  return <tr onClick={() => onProject(project.project.id)} className="clickable-row"><td><span className="project-identity"><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></span></td><td><span className="risk-rank-cell"><b className="score">—</b><small>Not calculated · {Math.round(project.calculation.risk.coverage * 100)}% input coverage</small></span></td><td colSpan={columns - 3}><span className="matrix-na">Risk composite unavailable below the 60% evidence floor</span></td><td><button className="row-arrow" onClick={(event) => { event.stopPropagation(); onProject(project.project.id); }} aria-label={`Open ${project.project.name}`}>→</button></td></tr>;
 }
 
 function average(values: readonly (number | null)[]): number | null {
@@ -608,7 +608,7 @@ function ProjectMatrixRow({ project, showRank, onProject }: { project: ProjectRi
   const open = () => onProject(project.project.id);
   return (
     <tr onClick={open} className="clickable-row matrix-row">
-      <td><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></td>
+      <td><span className="project-identity"><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></span></td>
       <td>{project.risk.value.index === null
         ? <span className="matrix-score"><b>—</b><span className="matrix-na">N/A</span><small>Below 60% evidence floor · {Math.round(project.calculation.risk.coverage * 100)}% coverage</small></span>
         : <span className={`matrix-score matrix-score--${project.risk.value.severity}`}><b>{Math.round(project.risk.value.index)}</b><SeverityBadge severity={project.risk.value.severity} compact /><small>{rankingLabel} · {Math.round(project.calculation.risk.coverage * 100)}% input coverage</small></span>}
@@ -653,7 +653,7 @@ function ProjectRiskRow({ project, onProject, domainMode = false, metricsSuppres
       : <><ProgressBar value={project.exposure.value.index} tone="orange" label={`${project.project.name} exposure`} /><b>{Math.round(project.exposure.value.index)}</b><small>{Math.round(project.calculation.exposure.coverage * 100)}% input coverage</small></>;
   return (
     <tr onClick={open} className="clickable-row">
-      <td><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></td>
+      <td><span className="project-identity"><span className="project-code">{project.code}</span><span className="project-name"><strong>{project.project.name}</strong><small>{project.descriptor}</small></span></span></td>
       <td>{riskCell}</td>
       <td>{exposureCell}</td>
       <td>{metricsSuppressed ? <span aria-label="Filtered momentum unavailable">—</span> : project.momentum.value.change7d === null ? <span aria-label="Momentum prior unavailable">— · prior unavailable</span> : <MomentumBadge direction={project.momentum.value.direction} change={project.momentum.value.change7d} />}</td>
@@ -846,7 +846,7 @@ function ProjectView({
 
       {recordScopeActive ? <Panel className="domain-panel"><EmptyState title="Project-level source signals suppressed" detail="Clear record-level filters to inspect whole-project Construction IQ quality and derived safety context." /></Panel> : <section className="truth-grid">
         <Panel>
-          <PanelHead eyebrow="SYNTHETIC · AUTODESK-SHAPED FIELD" title="Construction IQ Quality Risk" chip={summary.ciqQuality ? <SourceChip provenance={summary.ciqQuality.provenance} /> : <SourceChip label="Synthetic" syntheticKind="Autodesk-shaped field" />} />
+          <PanelHead eyebrow="CONSTRUCTION IQ SOURCE" title="Construction IQ Quality Risk" chip={summary.ciqQuality ? <SourceChip provenance={summary.ciqQuality.provenance} /> : <SourceChip label="Synthetic" syntheticKind="Autodesk-shaped field" />} />
           <div className="truth-card">
             {summary.ciqQuality ? (
               <>
@@ -864,7 +864,7 @@ function ProjectView({
           </div>
         </Panel>
         <Panel>
-          <PanelHead eyebrow="SYNTHETIC · DERIVED SIGNAL" title="Project safety condition" chip={<SourceChip label="Synthetic" />} />
+          <PanelHead eyebrow="DERIVED SAFETY SIGNAL" title="Project safety condition" chip={<SourceChip label="Synthetic" />} />
           <div className="truth-card">
             <SeverityBadge severity={summary.domainSummaries.find((domain) => domain.domain === "safety")?.severity ?? "none"} />
             <strong>{summary.project.availableDomains.includes("safety") ? cap(summary.domainSummaries.find((domain) => domain.domain === "safety")?.severity ?? "none") : "Not Applicable"}</strong>
@@ -1178,7 +1178,7 @@ function BurnView({ data, projects, records, historyRange, onRecord }: { data: D
         <article><span>Net backlog</span><b className={burn.net === 0 ? "metric-neutral" : burn.net > 0 ? "metric-up" : "metric-good"}>{burn.net > 0 ? "+" : ""}{burn.net}</b><small>records this period</small><SourceChip label="Synthetic" /></article>
         <article><span>Burn ratio</span><b className={burn.burnRatio === null ? "metric-neutral" : burn.burnRatio >= 1 ? "metric-good" : "metric-up"}>{burn.burnRatio === null ? "—" : `${burn.burnRatio.toFixed(2)}×`}</b><small>{burn.burnRatio === null ? "no new items; ratio undefined" : "resolved / created"}</small><SourceChip label="Synthetic" /></article>
       </section>
-      {growthRecommendation ? <div className="checklist-suggestion"><strong>Suggested action · advisory</strong><p><b>{growthRecommendation.title}.</b> {growthRecommendation.detail}</p><small>Deterministic rule · {growthRecommendation.ruleId} · {growthRecommendation.citedEvidence.length} cited source record{growthRecommendation.citedEvidence.length === 1 ? "" : "s"}. The recommendation prioritizes review and does not modify Autodesk records.</small><span>{growthRecommendation.citedEvidence.slice(0, 8).map((evidence) => <button key={recordIdentityKey(evidence)} onClick={() => onRecord(evidence)}>{evidence.label ?? evidence.id}</button>)}</span></div> : null}
+      {growthRecommendation ? <div className="checklist-suggestion burn-advisory"><strong>Suggested action · advisory</strong><p><b>{growthRecommendation.title}.</b> {growthRecommendation.detail}</p><small>Deterministic rule · {growthRecommendation.ruleId} · {growthRecommendation.citedEvidence.length} cited source record{growthRecommendation.citedEvidence.length === 1 ? "" : "s"}. The recommendation prioritizes review and does not modify Autodesk records.</small><span>{growthRecommendation.citedEvidence.slice(0, 8).map((evidence) => <button key={recordIdentityKey(evidence)} onClick={() => onRecord(evidence)}>{evidence.label ?? evidence.id}</button>)}</span></div> : null}
       <section className="burn-layout">
         <Panel><PanelHead eyebrow={`WEEKLY FLOW · ${rangeDays} DAYS`} title="New records vs resolved records" chip={<SourceChip label="Synthetic" />} /><div className="burn-chart"><div className="burn-chart__plot" role="group" aria-label={`Weekly risk flow over ${rangeDays} days`}>{history.map((week) => <div className="burn-group" key={week.week} role="img" aria-label={`${week.week}: ${week.created} created and ${week.resolved} resolved`}><span aria-hidden="true" className="burn-bar burn-bar--created" style={{ height: `${(week.created / maximum) * 100}%` }}><i>{week.created}</i></span><span aria-hidden="true" className="burn-bar burn-bar--resolved" style={{ height: `${(week.resolved / maximum) * 100}%` }}><i>{week.resolved}</i></span><small>{week.week}</small></div>)}</div><div className="chart-legend"><span><i className="legend-square legend-square--created" />Created</span><span><i className="legend-square legend-square--resolved" />Resolved</span></div></div></Panel>
         <Panel><PanelHead eyebrow="PROJECT COMPARISON" title="Where backlog is growing" /><div className="burn-project-list">{projectRows.map(({ project, burn: projectBurn }) => <div key={project.project.id}><span className="project-code">{project.code}</span><span><strong>{project.project.name}</strong><small>{projectBurn.created} created · {projectBurn.resolved} resolved · net {projectBurn.net > 0 ? "+" : ""}{projectBurn.net}</small></span><b className={projectBurn.burnRatio === null ? "metric-neutral" : projectBurn.burnRatio >= 1 ? "metric-good" : "metric-up"}>{projectBurn.burnRatio === null ? "—" : `${projectBurn.burnRatio.toFixed(2)}×`}</b></div>)}</div></Panel>
@@ -1267,7 +1267,7 @@ function CompaniesView({ data, projects, records, companyCiqSignals, companySign
     <>
       <DashboardHeader eyebrow="CONTEXTUAL COMPANY SIGNALS" title="Company risk patterns" detail="Synthetic Autodesk-shaped daily signals remain project-relative; contextual counts order review without creating a normalized company grade." />
       <section className="company-callout"><span aria-hidden="true">i</span><p><b>{companySignalsSuppressed ? "Aggregate CIQ signals suppressed." : "Context matters."}</b> {companySignalsSuppressed ? "One or more active record-level filters cannot be applied truthfully to company-day Construction IQ rows. Company rows now use matching record evidence only; clear those filters to restore aggregate quality and safety signals." : "These quality and safety values simulate sparse Construction IQ change-log fields. Carried values show their synthetic observation date; raw numeric indicators are not converted into a score. Assignment-based attribution remains inferred."}</p></section>
-      <Panel>
+      <Panel className="company-cross-project-panel">
         <PanelHead eyebrow="CROSS-PROJECT VIEW" title={rows.length + " companies in scope"} chip={<SourceChip label="Synthetic" />} action={<span className="coverage-pill">Ordered by high/open context · not a grade</span>} />
         {rows.length ? <div className="company-table">
           <div className="company-table__head"><span>Company / category / trade</span><span>Projects</span><span>Open risk</span><span>High risk</span><span>Attribution</span><span>Synthetic CIQ-shaped / evidence</span></div>
@@ -1363,9 +1363,12 @@ function RelationshipsView({ relationships: allEdges, records, coverage, onRecor
       <PanelHead eyebrow="UNDIRECTED ASSOCIATIONS" title="Linked record pairs" chip={<SourceChip label="Synthetic" />} />
       {edges.length ? <>
         <div className="relationship-graph" role="group" aria-label="Undirected pairs of issue, RFI, cost, and schedule records">
-          <div className="graph-column"><span>ENDPOINT A</span>{edges.slice(0, 4).map((edge) => <button key={`from-${edge.projectId}-${edge.id}`} onClick={() => onRecord(edge.from)}><i>{edge.from.kind.slice(0, 1).toUpperCase()}</i><strong>{edge.from.label}</strong><small>{edge.from.kind}</small></button>)}</div>
-          <div className="graph-edges" aria-hidden="true">{edges.slice(0, 4).map((edge, index) => <span key={`${edge.projectId}-${edge.id}`} style={{ transform: `rotate(${index % 2 ? -5 : 5}deg)` }}><i>{edge.confidence}</i></span>)}</div>
-          <div className="graph-column"><span>ENDPOINT B</span>{edges.slice(0, 4).map((edge) => <button key={`to-${edge.projectId}-${edge.id}`} onClick={() => onRecord(edge.to)}><i>{edge.to.kind.slice(0, 1).toUpperCase()}</i><strong>{edge.to.label}</strong><small>{edge.to.kind}</small></button>)}</div>
+          <div className="graph-labels"><span>ENDPOINT A</span><span>ENDPOINT B</span></div>
+          {edges.slice(0, 4).map((edge) => <div className="graph-pair" key={`${edge.projectId}-${edge.id}`}>
+            <div className="graph-column"><button onClick={() => onRecord(edge.from)}><i>{edge.from.kind.slice(0, 1).toUpperCase()}</i><strong>{edge.from.label}</strong><small>{edge.from.kind}</small></button></div>
+            <div className="graph-edges" aria-hidden="true"><span><i>{edge.confidence}</i></span></div>
+            <div className="graph-column"><button onClick={() => onRecord(edge.to)}><i>{edge.to.kind.slice(0, 1).toUpperCase()}</i><strong>{edge.to.label}</strong><small>{edge.to.kind}</small></button></div>
+          </div>)}
         </div>
         <p className="graph-caption">Each row is an undirected pair. The evidence method and confidence below explain why it is shown; column position does not imply sequence, direction, ownership, or causality.</p>
       </> : <EmptyState title="No relationship evidence in this scope" detail="No supported or inferred edge includes a record matching the current filters. Absence of an edge does not establish that records are unrelated." />}
@@ -1406,9 +1409,9 @@ function ProvenanceView({ data, scopedLineage, requestedMetricId, scopeBounded }
           {visible.length ? <div className="lineage-list">{visible.map((entry) => (
             <article key={entry.id} className={selected?.id === entry.id ? "lineage-row lineage-row--selected" : "lineage-row"}>
               <SourceChip provenance={entry.provenance} />
-              <span><strong>{entry.label}</strong><small>{entry.provenance.definitionId} · {entry.category}</small></span>
-              <span><b>v{entry.provenance.definitionVersion}</b><small>{entry.evidence.length} contributor{entry.evidence.length === 1 ? "" : "s"}</small></span>
-              <button aria-label={"Inspect " + entry.label} aria-pressed={selected?.id === entry.id} onClick={() => setSelectedId(entry.id)}>→</button>
+              <span className="lineage-label"><strong>{entry.label}</strong><small>{entry.provenance.definitionId} · {entry.category}</small></span>
+              <span className="lineage-version"><b>v{entry.provenance.definitionVersion}</b><small>{entry.evidence.length} contributor{entry.evidence.length === 1 ? "" : "s"}</small></span>
+              <button className="lineage-action" aria-label={"Inspect " + entry.label} aria-pressed={selected?.id === entry.id} onClick={() => setSelectedId(entry.id)}>→</button>
             </article>
           ))}</div> : <EmptyState title="No lineage entries" detail="Choose another metric category." />}
         </Panel>

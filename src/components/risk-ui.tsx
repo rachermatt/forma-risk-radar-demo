@@ -35,21 +35,21 @@ export function PriorityBadge({ priority, compact = false }: { priority: Severit
 export function SourceChip({
   provenance,
   label,
-  syntheticKind,
 }: {
   provenance?: MetricProvenance;
   label?: "Synthetic" | "Autodesk" | "Derived" | "AI";
   syntheticKind?: "Autodesk-shaped field" | "Derived";
 }) {
   const value = label ?? (provenance ? provenanceLabel(provenance) : "Derived");
-  const syntheticDetail = value === "Synthetic"
-    ? syntheticKind ?? (provenance?.valueKind === "autodesk-provided" ? "Autodesk-shaped field" : "Derived")
-    : null;
-  const icon = value === "Autodesk" ? "A" : value === "Synthetic" ? "◇" : value === "AI" ? "✦" : "ƒ";
+  // The workspace banner already identifies demo data. Repeating that notice
+  // on each metric adds visual noise; retain the underlying provenance for
+  // the inspector while leaving real source/derived distinctions visible.
+  if (value === "Synthetic") return null;
+  const icon = value === "Autodesk" ? "A" : value === "AI" ? "✦" : "ƒ";
   return (
     <span className={`data-chip data-chip--${value.toLowerCase()}`} title={provenance ? `${provenance.definitionId} · v${provenance.definitionVersion}` : undefined}>
       <span aria-hidden="true">{icon}</span>
-      {value}{syntheticDetail ? ` · ${syntheticDetail}` : ""}
+      {value}
     </span>
   );
 }
@@ -176,16 +176,24 @@ export function TrendChart({
     }
     return null;
   };
+  // Scale the data geometry, not the glyphs. A single stretched SVG viewBox
+  // turns circles into ellipses and widens every label on a large dashboard.
+  // Percentage positions on the outer viewport keep markers and text at their
+  // natural size while the nested viewport lets paths fill the available width.
+  const viewportX = (coordinate: number) => `${(coordinate / width) * 100}%`;
+  const viewportY = (coordinate: number) => `${(coordinate / height) * 100}%`;
   return (
-    <svg className={compact ? "trend-chart trend-chart--compact" : "trend-chart"} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label} preserveAspectRatio="none">
+    <svg className={compact ? "trend-chart trend-chart--compact" : "trend-chart"} role="img" aria-label={label}>
       <title>{label}</title>
       <desc>Risk history. Solid points are observed snapshots; dashed segments include carried or mixed-coverage daily values. {accessibleSeries}</desc>
-      {!compact ? [25, 50, 75].map((value) => <line className="chart-grid" key={value} x1={pad} x2={width - pad} y1={y(value)} y2={y(value)} />) : null}
-      {threshold !== undefined ? <line className="chart-threshold" x1={pad} x2={width - pad} y1={y(threshold)} y2={y(threshold)} /> : null}
-      {paths.map((path, index) => <path className="trend-area" d={path.area} key={`area-${index}`} />)}
-      {primarySegments.map((segment) => <path className={segment.carried ? "trend-path trend-path--carried" : "trend-path"} d={segment.d} key={segment.key} />)}
-      {comparisonPaths.map((path, index) => <path className="trend-overlay trend-overlay--previous" d={path} key={`comparison-${index}`} />)}
-      {rollingPaths.map((path, index) => <path className="trend-overlay trend-overlay--rolling" d={path} key={`rolling-${index}`} />)}
+      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
+        {!compact ? [0, 25, 50, 75, 100].map((value) => <line className="chart-grid" key={value} x1={pad} x2={width - pad} y1={y(value)} y2={y(value)} />) : null}
+        {threshold !== undefined ? <line className="chart-threshold" x1={pad} x2={width - pad} y1={y(threshold)} y2={y(threshold)} /> : null}
+        {paths.map((path, index) => <path className="trend-area" d={path.area} key={`area-${index}`} />)}
+        {primarySegments.map((segment) => <path className={segment.carried ? "trend-path trend-path--carried" : "trend-path"} d={segment.d} key={segment.key} />)}
+        {comparisonPaths.map((path, index) => <path className="trend-overlay trend-overlay--previous" d={path} key={`comparison-${index}`} />)}
+        {rollingPaths.map((path, index) => <path className="trend-overlay trend-overlay--rolling" d={path} key={`rolling-${index}`} />)}
+      </svg>
       {points.map((point, index) => {
         if (point.value === null) return null;
         const state = point.mixed
@@ -196,14 +204,15 @@ export function TrendChart({
             ? `stale carry from ${point.forwardFilledFrom ?? "an earlier observation"}`
             : `carried forward from ${point.forwardFilledFrom ?? "an earlier observation"}`;
         const pointTitle = `${point.date}: ${point.value.toFixed(1)} · ${state}`;
-        return <circle className={point.observed ? "trend-point" : point.mixed ? "trend-point trend-point--mixed" : "trend-point trend-point--carried"} key={point.date} cx={x(index)} cy={y(point.value)} r={point.observed ? (compact ? 2.8 : 4.2) : point.mixed ? 3 : 2} aria-hidden="true"><title>{pointTitle}</title></circle>;
+        return <circle className={point.observed ? "trend-point" : point.mixed ? "trend-point trend-point--mixed" : "trend-point trend-point--carried"} key={point.date} cx={viewportX(x(index))} cy={viewportY(y(point.value))} r={point.observed ? (compact ? 2.8 : 4.2) : point.mixed ? 3 : 2} aria-hidden="true"><title>{pointTitle}</title></circle>;
       })}
       {!compact ? (
         <>
-          <text className="chart-axis-label" x={pad} y={height - 5}>{points[0]?.date.slice(5)}</text>
-          <text className="chart-axis-label" x={width - pad} y={height - 5} textAnchor="end">{points.at(-1)?.date.slice(5)}</text>
-          {lastValue(rollingAverage) !== null ? <text className="chart-series-label chart-series-label--rolling" x={width - pad} y={y(lastValue(rollingAverage)!)-6} textAnchor="end">{`7d avg ${lastValue(rollingAverage)!.toFixed(1)}`}</text> : null}
-          {lastValue(comparison?.points) !== null ? <text className="chart-series-label chart-series-label--previous" x={width - pad} y={y(lastValue(comparison?.points)!)+12} textAnchor="end">{`${comparison?.label} ${lastValue(comparison?.points)!.toFixed(1)}`}</text> : null}
+          {[0, 25, 50, 75, 100].map((value) => <text className="chart-axis-label" key={`axis-${value}`} x={viewportX(pad - 7)} y={viewportY(y(value))} dy="4" textAnchor="end">{value}</text>)}
+          <text className="chart-axis-label" x={viewportX(pad)} y="100%" dy="-7">{points[0]?.date.slice(5)}</text>
+          <text className="chart-axis-label" x={viewportX(width - pad)} y="100%" dy="-7" textAnchor="end">{points.at(-1)?.date.slice(5)}</text>
+          {lastValue(rollingAverage) !== null ? <text className="chart-series-label chart-series-label--rolling" x={viewportX(width - pad)} y={viewportY(y(lastValue(rollingAverage)!))} dy="-12" textAnchor="end">{`7d avg ${lastValue(rollingAverage)!.toFixed(1)}`}</text> : null}
+          {lastValue(comparison?.points) !== null ? <text className="chart-series-label chart-series-label--previous" x={viewportX(width - pad)} y={viewportY(y(lastValue(comparison?.points)!))} dy="20" textAnchor="end">{`${comparison?.label} ${lastValue(comparison?.points)!.toFixed(1)}`}</text> : null}
         </>
       ) : null}
     </svg>

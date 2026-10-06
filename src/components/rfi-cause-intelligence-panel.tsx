@@ -29,7 +29,7 @@ export function RfiCauseIntelligencePanel({ intelligence, onRecord, limit }: {
   const ciqSource = intelligence.sourceCoverage.find((source) => source.origin === "construction-iq-predicted")!;
   const operationalSource = intelligence.sourceCoverage.find((source) => source.origin === "operational-category")!;
   return <>
-    <header className={styles.header}><div><p className="eyebrow">SOURCE-QUALIFIED RFI CAUSES</p><h1>RFI cause intelligence</h1><p>Construction IQ predictions and project-configured operational categories remain separate. Counts, aging, response coverage, reach, and recurrence all drill to the exact RFI population.</p></div><SourceChip provenance={intelligence.provenance} /></header>
+    <header className="page-head page-head--view"><div><p className="eyebrow">SOURCE-QUALIFIED RFI CAUSES</p><h1>RFI cause intelligence</h1><p>Construction IQ predictions and project-configured operational categories remain separate. Counts, aging, response coverage, reach, and recurrence all drill to the exact RFI population.</p></div><SourceChip provenance={intelligence.provenance} /></header>
     <section className={styles.coverage} aria-label="RFI cause coverage">
       <article><span>RFIs in scope</span><b>{intelligence.totalRfis}</b><small>current filtered records</small><SourceChip provenance={intelligence.provenance} /></article>
       <article><span>CIQ cause coverage</span><b>{!ciqSource.available ? "N/A" : ciqSource.eligibleRfis ? `${intelligence.ciqAttributed}/${ciqSource.eligibleRfis}` : "—"}</b><small>{ciqSource.available ? `${intelligence.ciqUnattributed} without a CIQ cause${projectCoverage(ciqSource)}` : ciqSource.unavailableReason}</small><SourceChip label="Synthetic" syntheticKind="Autodesk-shaped field" /></article>

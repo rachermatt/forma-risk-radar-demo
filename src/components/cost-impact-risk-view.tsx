@@ -21,7 +21,7 @@ export interface CostImpactRiskViewProps {
 
 export function CostImpactRiskView({ model, onRecord, title = "Cost-impact evidence" }: CostImpactRiskViewProps) {
   return <>
-    <header className={styles.header}>
+    <header className="page-head page-head--view">
       <div><p className="eyebrow">CATEGORICAL AND TRI-STATE EVIDENCE</p><h1>{title}</h1><p>Keep affirmative, potential, explicit negative/low, unavailable, and unmapped source states separate without inventing a dollar value or attributing a linked change amount to a risk record.</p></div>
       <SourceChip provenance={model.provenance} />
     </header>
